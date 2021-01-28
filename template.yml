@@ -14,6 +14,13 @@ Parameters:
     Type: String
     Description: A boolean to determine if you want to output debug messages in the CloudWatch console
     Default: "false"
+  PermissionsBoundary:
+    Type: String
+    Description: IAM Role PermissionsBoundary (optional)
+    Default: ''
+
+Conditions:
+  HasPermissionBoundary: !Not [ !Equals ['', !Ref PermissionsBoundary] ]
 
 Metadata:
   AWS::ServerlessRepo::Application:
@@ -33,6 +40,7 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       Runtime: python3.8
+      PermissionsBoundary: !If [ HasPermissionBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       CodeUri: src/
       Handler: handler.lambda_handler
       FunctionName: NewRelic-s3-log-ingestion
@@ -43,6 +51,7 @@ Resources:
           LICENSE_KEY: !Ref NRLicenseKey
           LOG_TYPE: !Ref NRLogType
           DEBUG_ENABLED: !Ref DebugEnabled
+          PERMISSIONS_BOUNDARY: !Ref PermissionsBoundary
       Policies:
         - Version: '2012-10-17'
           Statement:
